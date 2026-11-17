@@ -14,6 +14,7 @@ customer data.
 - [Run locally](#run-locally)
 - [Podman stack](#podman-stack)
 - [Health and reset](#health-and-reset)
+- [Test plan](TEST-PLAN.md)
 
 ## Architecture
 
