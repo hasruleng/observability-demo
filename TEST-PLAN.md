@@ -58,6 +58,43 @@ the presentation.
 - [D-5. Order Flow Dashboard](#d-5-order-flow-dashboard)
 - [D-6. Bounded Load and Queue Recovery](#d-6-bounded-load-and-queue-recovery)
 
+## Live Demo Timing
+
+The November 26 meeting is at most 60 minutes shared by the presentation, demo,
+and discussion. The proposed agenda reserves **up to 8 minutes for the live
+demo**; confirm the final agenda with the meeting owner. These estimates are
+for a rehearsed live run, include ordinary navigation and telemetry waits, and
+exclude stack startup, image builds, and rehearsal. The ranges are estimates,
+not measured guarantees.
+
+| Scenario | Estimated live time | Timing notes |
+|---|---:|---|
+| D-1. Healthy order | 0:45-1:00 | Includes placing an order and briefly reading the result. |
+| D-2. Slow fulfillment | 1:00-1:30 | Includes switching mode, comparing duration, and showing the slow result. The smoke script is a verification tool, not necessary stage content. |
+| D-3. Failed fulfillment | 0:45-1:15 | Includes switching mode, placing one order, and pointing out the failure details. |
+| D-4. Trace and log correlation | 1:30-2:30 | Depends on Grafana being open and locating the prepared trace/log quickly. |
+| D-5. Order Flow dashboard | 0:45-1:15 | Can overlap D-2 while the slow-order metrics appear; avoid narrating the same wait twice. |
+| D-6. Bounded load and recovery | 3:00-5:00 | JMeter itself previously ran in about 22 seconds; starting it, showing the queue/p95, waiting for recovery/export, and narrating drive the total. Pre-generated data can shorten this. |
+| AI-assisted investigation, one prepared prompt | 2:00-4:00 | Assumes read-only telemetry access and a known order/trace are already prepared. Neither a Grafana MCP server nor a Copilot query path is currently configured and rehearsed. |
+| Explain MCP vs. direct APIs and run the prompt | 4:00-7:00 | Includes introducing both access options and demonstrating one investigation; excludes setup or troubleshooting. |
+
+**Recommended core:** D-1 + D-2 + D-4 + D-5 take about **4:00-6:15** of
+actions. Allow another **1:00-1:30** for transitions and small delays: total
+**5:00-7:45**. This fits the proposed 8-minute cap if rehearsed. D-5 can be
+shown during D-2's telemetry wait.
+
+**Full scenario run:** D-1 through D-6, sequentially, take about **7:45-12:30**
+before transitions. This is not an 8-minute presentation sequence. D-3 or D-6
+should be an optional substitution, not an automatic addition to the core.
+
+**AI fit:** Do not add the AI segment to the current core. One prepared prompt
+adds roughly 2-4 minutes, taking the core to **7:00-11:45** including the same
+transition allowance; it only fits at the fastest end and leaves no reliable
+buffer. The fuller MCP-vs-API explanation plus prompt takes **4-7 minutes** and
+does not fit as an add-on. An AI example is possible only if it replaces most
+of D-4, uses a preconfigured read-only query path, and is rehearsed end to end.
+Otherwise, discuss AI prompting after the demo or keep it for a separate session.
+
 ## Detailed Test Scenarios
 
 ### ND-1. Build and Compose Configuration
