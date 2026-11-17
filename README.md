@@ -74,8 +74,24 @@ classDiagram
 
 ## Requirements
 
-- .NET SDK 10.0.403 (selected by `global.json`)
-- PowerShell
+### To run the full demo with Podman (recommended)
+
+- Podman with a running Podman machine on Windows.
+- A Compose provider available to Podman (`podman-compose` is installed in the
+  setup steps below).
+- PowerShell for the documented setup commands and helper scripts.
+
+The .NET and web build tools are installed inside their container build images;
+you do not need the .NET SDK or Node.js/npm on the host to build and run the
+Podman stack. The first image build needs network access to download base images
+and dependencies.
+
+### Optional host development tools
+
+- .NET SDK 10.0.403 (selected by `global.json`) to build or run the .NET
+  services directly on the host using `dotnet`.
+- Node.js/npm to build the web UI on the host or run its Vite development
+  server with `npm run dev`.
 
 `NuGet.Config` clears inherited package feeds and uses nuget.org only.
 
