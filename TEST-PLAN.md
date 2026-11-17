@@ -149,15 +149,16 @@ checks without unnecessarily rebuilding.
    Invoke-RestMethod http://127.0.0.1:3000/api/health
    ```
 
-4. Open `http://127.0.0.1:5173/` in a browser.
+4. Open `http://127.0.0.1:5173/` in a browser. This is the WebUI; see the
+   [WebUI guide](web/docs/ui-guide.md) for an explanation of its controls and results.
 
 **Expected results**
 
 - [x] PASS [ ] FAIL - The `otel-lgtm`, `fulfillment`, `worker`, `order-api`, and `web` containers are running; the four application/web containers report healthy.
 - [x] PASS [ ] FAIL - The health endpoints return healthy responses for `order-api`, `order-worker`, and `fulfillment`; Grafana's health endpoint succeeds.
-- [ ] PASS [ ] FAIL - The page loads with the heading "Place an order", the `LOCAL / SYNTHETIC` marker, and no browser error page.
+- [x] PASS [ ] FAIL - The page loads with the heading "Place an order", the `LOCAL / SYNTHETIC` marker, and no browser error page.
 
-**Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
+**Outcome:** [x] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence:**
 
@@ -166,8 +167,10 @@ hours; fulfillment, worker, order-api, and web report healthy. The three
 application health endpoints return `healthy` for their respective services.
 Grafana's health endpoint returns `database: ok` and version `13.3.0`.
 This verifies the existing running stack, not a fresh image build.
-The browser check in step 4 remains unverified; leave the overall outcome
-unchecked until the page heading and `LOCAL / SYNTHETIC` marker are confirmed.
+The tester confirmed in the browser that the WebUI at port 5173 displays
+"Place an order" and `LOCAL / SYNTHETIC` without a browser error; the supplied
+screenshot shows the initial Ready state. All ND-2 expected results pass.
+Order submission and telemetry behavior remain separate checks in D-1 onward.
 
 
 ### D-1. Place a Healthy Order in the UI

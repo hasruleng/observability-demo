@@ -15,6 +15,7 @@ customer data.
 - [Podman stack](#podman-stack)
 - [Health and reset](#health-and-reset)
 - [Test plan](TEST-PLAN.md)
+- [WebUI guide](web/docs/ui-guide.md)
 
 ## Architecture
 
