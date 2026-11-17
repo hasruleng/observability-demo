@@ -1,0 +1,23 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/dist/
+**/TestResults/
+.vs/
+.idea/
+.venv/
+__pycache__/
+*.py[cod]
+coverage/
+*.log
+*.user
+*.suo
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# OS metadata
+.DS_Store
+Thumbs.db

@@ -1,0 +1,129 @@
+name: observability-demo
+
+services:
+  otel-lgtm:
+    image: grafana/otel-lgtm:0.41.0
+    environment:
+      ENABLE_OBI: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /otel-lgtm/grafana/conf/provisioning/dashboards/custom/journey-overview.json
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
+    volumes:
+      - ./grafana/prometheus.yaml:/otel-lgtm/prometheus.yaml:ro
+      - ./grafana/provisioning/dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/custom.yaml:ro
+      - ./grafana/dashboards/journey-overview.json:/otel-lgtm/grafana/conf/provisioning/dashboards/custom/journey-overview.json:ro
+      - otel-data:/data
+    mem_limit: 2g
+
+  dependency:
+    image: observability-demo-dependency:local
+    build:
+      context: .
+      args:
+        SERVICE_PROJECT: Demo.Dependency
+    entrypoint: ["dotnet", "Demo.Dependency.dll"]
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      SERVICE_VERSION: ${SERVICE_VERSION:-local}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+    ports:
+      - "127.0.0.1:8082:8080"
+    depends_on:
+      otel-lgtm:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 2s
+      retries: 12
+    mem_limit: 512m
+
+  worker:
+    image: observability-demo-worker:local
+    build:
+      context: .
+      args:
+        SERVICE_PROJECT: Demo.Worker
+    entrypoint: ["dotnet", "Demo.Worker.dll"]
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      DEPENDENCY_URL: http://dependency:8080
+      SERVICE_VERSION: ${SERVICE_VERSION:-local}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+    ports:
+      - "127.0.0.1:8081:8080"
+    depends_on:
+      dependency:
+        condition: service_healthy
+      otel-lgtm:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 2s
+      retries: 12
+    mem_limit: 512m
+
+  journey-api:
+    image: observability-demo-journey-api:local
+    build:
+      context: .
+      args:
+        SERVICE_PROJECT: Demo.JourneyApi
+    entrypoint: ["dotnet", "Demo.JourneyApi.dll"]
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      WORKER_URL: http://worker:8080
+      SERVICE_VERSION: ${SERVICE_VERSION:-local}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      worker:
+        condition: service_healthy
+      otel-lgtm:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 2s
+      retries: 12
+    mem_limit: 512m
+
+  web:
+    build:
+      context: ./web
+    ports:
+      - "127.0.0.1:5173:80"
+    depends_on:
+      journey-api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 2s
+      retries: 12
+    mem_limit: 256m
+
+  jmeter:
+    profiles: ["load"]
+    build:
+      context: ./load
+    depends_on:
+      journey-api:
+        condition: service_healthy
+    volumes:
+      - ./load/saturation.jmx:/test/saturation.jmx:ro
+    tmpfs:
+      - /tmp:size=64m
+    command: ["-n", "-t", "/test/saturation.jmx", "-l", "/tmp/saturation.jtl", "-j", "/tmp/jmeter.log"]
+    mem_limit: 512m
+    cpus: 1.0
+
+volumes:
+  otel-data:
