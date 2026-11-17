@@ -21,6 +21,42 @@ customer data.
 
 ## Architecture
 
+### Telemetry flow at a glance
+
+```text
+Your .NET services (Order API, worker, fulfillment)
+    |
+    | send telemetry using OpenTelemetry over OTLP
+    v
+OpenTelemetry Collector
+    |
+    | routes each type of data
+    +-- Metrics --> Prometheus --+
+    +-- Logs -----> Loki --------+  storage/query backends
+    +-- Traces ---> Tempo -------+
+                                ^
+                                | queries all three backends
+                             Grafana
+                                |
+                                | displays dashboards, logs, and traces
+                                v
+                           Your browser
+```
+
+Here, a **backend** means a program that stores telemetry and lets Grafana query
+it, not the Order API or worker. The Collector, Prometheus, Loki, Tempo, and
+Grafana run together inside the `otel-lgtm` container. Your browser opens
+Grafana at <http://127.0.0.1:3000/> to explore that data.
+
+The order WebUI at <http://127.0.0.1:5173/> is separate: it submits synthetic
+orders to generate the activity being observed. See
+[Telemetry storage](#telemetry-storage) for how and where the data is persisted.
+
+### Application components
+
+The class diagram below gives a more detailed view of the application
+components and their relationships.
+
 ```mermaid
 classDiagram
     direction LR
