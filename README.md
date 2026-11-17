@@ -10,8 +10,7 @@ customer data.
 
 - [Architecture](#architecture)
 - [Requirements](#requirements)
-- [Build](#build)
-- [Run locally](#run-locally)
+- [Run services directly on host (optional)](#run-services-directly-on-host-optional)
 - [Podman stack](#podman-stack)
 - [Host ports and where services run](#host-ports-and-where-services-run)
 - [Health and reset](#health-and-reset)
@@ -93,20 +92,19 @@ and dependencies.
 - Node.js/npm to build the web UI on the host or run its Vite development
   server with `npm run dev`.
 
+For optional host-side build checks (`dotnet restore`/`build` and `npm ci`/`build`),
+see [ND-1 in the test plan](TEST-PLAN.md#nd-1-build-and-compose-configuration).
+The Podman workflow builds these components inside their container images.
+
 `NuGet.Config` clears inherited package feeds and uses nuget.org only.
 
-## Build
+## Run services directly on host (optional)
 
-From this directory:
-
-```powershell
-dotnet restore Demo.sln --configfile NuGet.Config
-dotnet build Demo.sln --no-restore
-```
-
-## Run locally
-
-Open three PowerShell terminals in this directory for the services.
+Use this alternative only if you want to run or debug the application services
+as host processes instead of using the recommended Podman stack. Build the
+projects first using the optional host build steps in
+[ND-1](TEST-PLAN.md#nd-1-build-and-compose-configuration). Open three
+PowerShell terminals in the repository root.
 
 Terminal 1, fake fulfillment service (project `Demo.Dependency`):
 
@@ -230,8 +228,8 @@ on the Compose network.
 running the demo entirely with Podman. Use it when you want to run or debug
 the application processes directly on Windows without rebuilding their images.
 
-The commands in [Run locally](#run-locally) start the application services
-directly on Windows instead:
+The commands in [Run services directly on host](#run-services-directly-on-host-optional)
+start the application services directly on Windows instead:
 
 | Host port | Direct host process | Difference from Compose |
 |---|---|---|
