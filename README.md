@@ -24,14 +24,9 @@ customer data.
 ### Telemetry flow at a glance
 
 ```text
-Your browser: React WebUI (5173)
+Your .NET services (Order API, worker, fulfillment)
     |
-    | submits orders and polls status over HTTP
-    v
-.NET Order API --> .NET worker --> .NET fulfillment
-    |
-    | all three .NET services export telemetry
-    | using OpenTelemetry over OTLP
+    | send telemetry using OpenTelemetry over OTLP
     v
 OpenTelemetry Collector
     |
@@ -53,13 +48,8 @@ it, not the Order API or worker. The Collector, Prometheus, Loki, Tempo, and
 Grafana run together inside the `otel-lgtm` container. Your browser opens
 Grafana at <http://127.0.0.1:3000/> to explore that data.
 
-The React order WebUI at <http://127.0.0.1:5173/> generates the activity being
-observed by submitting orders and polling their status through the Order API.
-It is not a .NET service and does not currently have browser-side OpenTelemetry
-instrumentation or export telemetry directly to the Collector. The three
-.NET services produce the telemetry shown above; the WebUI displays the
-submission trace ID returned by the API. Grafana is a separate interface for
-investigating that telemetry. See
+The order WebUI at <http://127.0.0.1:5173/> is separate: it submits synthetic
+orders to generate the activity being observed. See
 [Telemetry storage](#telemetry-storage) for how and where the data is persisted.
 
 ### Application components
