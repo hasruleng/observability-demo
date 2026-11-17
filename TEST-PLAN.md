@@ -196,14 +196,18 @@ baseline for the slow and failing scenarios.
 
 **Expected results**
 
-- [ ] PASS [ ] FAIL - The status changes from `Ready` through `In progress` to `Completed`.
-- [ ] PASS [ ] FAIL - The result shows `Items: 1`, outcome `completed`, and a positive order duration.
-- [ ] PASS [ ] FAIL - An order ID and non-empty trace ID are displayed.
-- [ ] PASS [ ] FAIL - The submit button is available again after the order completes.
+- [x] PASS [ ] FAIL - The status changes from `Ready` through `In progress` to `Completed`.
+- [x] PASS [ ] FAIL - The result shows `Items: 1`, outcome `completed`, and a positive order duration.
+- [x] PASS [ ] FAIL - An order ID and non-empty trace ID are displayed.
+- [x] PASS [ ] FAIL - The **Place order** button is available again after the order completes.
 
-**Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
+**Outcome:** [x] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence (order ID / trace ID):**
+
+2026-11-17: Healthy one-item order completed in 0.45 s. The UI displayed
+`Items: 1`, outcome `COMPLETED`, an order ID, and a trace ID. The **Place order**
+button was available again after completion (see tester-provided screenshot).
 
 
 ### D-2. Slow Fulfillment Is Visible
