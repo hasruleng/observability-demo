@@ -85,22 +85,40 @@ problems; it validates configuration but does not build or start anything.
    Pop-Location
    ```
 
-2. Validate Compose configuration from the repository root:
+2. From the repository root, configure the existing local Compose provider in
+   the current PowerShell session, then validate Compose configuration. If the
+   provider has not been installed, follow the README's Podman provider setup
+   first. Repeat these environment assignments in each new terminal where you
+   use `podman compose`.
 
    ```powershell
+   $env:PATH = "$PWD\.venv\Scripts;$env:PATH"
+   $env:PODMAN_COMPOSE_PROVIDER = "$PWD\.venv\Scripts\podman-compose.exe"
    podman compose config
    ```
 
+   The `Executing external compose provider` message is informational, not an
+   error. Successful output renders the enabled services and their configuration;
+   this command does not build images or start containers.
+
 **Expected results**
 
-- [ ] PASS [ ] FAIL [ ] N/A - .NET restore and build complete without errors (N/A if host builds are skipped).
-- [ ] PASS [ ] FAIL [ ] N/A - The web TypeScript and production build complete without errors (N/A if host builds are skipped).
-- [ ] PASS [ ] FAIL - Compose configuration renders all services without errors.
-- [ ] PASS [ ] FAIL - Host-published ports in the rendered Compose configuration bind to `127.0.0.1`.
+- [x] PASS [ ] FAIL [ ] N/A - .NET restore and build complete without errors (N/A if host builds are skipped).
+- [x] PASS [ ] FAIL [ ] N/A - The web TypeScript and production build complete without errors (N/A if host builds are skipped).
+- [x] PASS [ ] FAIL - Compose configuration renders all enabled services without errors.
+- [x] PASS [ ] FAIL - Host-published ports in the rendered Compose configuration bind to `127.0.0.1`.
 
-**Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
+**Outcome:** [x] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence:**
+
+2026-11-17: Host .NET and npm builds reported successful. After setting the local
+Compose provider environment variables, `podman compose config` rendered
+`fulfillment`, `order-api`, `otel-lgtm`, `web`, and `worker` without errors.
+All published ports (8082, 8080, 3000, 4317, 4318, 5173, and 8081) bind to
+`127.0.0.1`. The optional JMeter service is in the `load` profile and was not
+enabled in this configuration check. Container build/start and runtime health
+remain separate checks in ND-2.
 
 
 ### ND-2. Start the Stack and Check Health
