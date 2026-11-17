@@ -134,7 +134,11 @@ checks without unnecessarily rebuilding.
 
 **Steps**
 
-1. Follow the README's Podman provider setup if needed, then run `podman compose up --build -d`.
+1. Reuse the PowerShell session configured in ND-1. In a new terminal, repeat
+   ND-1 step 2's environment assignments; install the provider using the README
+   only if it is missing. Run `podman compose up --build -d` when images need
+   building or the stack needs starting. For an already-running stack with the
+   intended images, proceed to the status and health checks.
 2. Run `podman compose ps` and wait for health checks to complete.
 3. Check each endpoint:
 
@@ -149,13 +153,21 @@ checks without unnecessarily rebuilding.
 
 **Expected results**
 
-- [ ] PASS [ ] FAIL - The `otel-lgtm`, `fulfillment`, `worker`, `order-api`, and `web` containers are running; the four application/web containers report healthy.
-- [ ] PASS [ ] FAIL - The health endpoints return healthy responses for `order-api`, `order-worker`, and `fulfillment`; Grafana's health endpoint succeeds.
+- [x] PASS [ ] FAIL - The `otel-lgtm`, `fulfillment`, `worker`, `order-api`, and `web` containers are running; the four application/web containers report healthy.
+- [x] PASS [ ] FAIL - The health endpoints return healthy responses for `order-api`, `order-worker`, and `fulfillment`; Grafana's health endpoint succeeds.
 - [ ] PASS [ ] FAIL - The page loads with the heading "Place an order", the `LOCAL / SYNTHETIC` marker, and no browser error page.
 
 **Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence:**
+
+2026-11-17: `podman compose ps` shows all five containers running for three
+hours; fulfillment, worker, order-api, and web report healthy. The three
+application health endpoints return `healthy` for their respective services.
+Grafana's health endpoint returns `database: ok` and version `13.3.0`.
+This verifies the existing running stack, not a fresh image build.
+The browser check in step 4 remains unverified; leave the overall outcome
+unchecked until the page heading and `LOCAL / SYNTHETIC` marker are confirmed.
 
 
 ### D-1. Place a Healthy Order in the UI
