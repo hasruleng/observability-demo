@@ -14,6 +14,7 @@ customer data.
 - [Run services directly on host (optional)](#run-services-directly-on-host-optional)
 - [Podman stack](#podman-stack)
 - [Host ports and where services run](#host-ports-and-where-services-run)
+- [Telemetry storage](#telemetry-storage)
 - [Health and reset](#health-and-reset)
 - [Test plan](TEST-PLAN.md)
 - [WebUI guide](web/docs/ui-guide.md)
@@ -292,6 +293,52 @@ Get-NetTCPConnection -State Listen |
 Use `Get-Process -Id <OwningProcess>` to identify a listener. For Podman
 forwarding, the Windows process may be a networking/forwarding process rather
 than the actual application; use the Compose mappings to identify its service.
+
+## Telemetry storage
+
+**OpenTelemetry is not a database.** The .NET instrumentation creates traces,
+metrics, and logs and exports them over OTLP. The OpenTelemetry Collector in
+the LGTM container receives and routes them to separate storage backends.
+Grafana queries those backends to display the data.
+
+So, "files or database?" is not an either/or choice here: the backends use
+specialized database formats stored as files on disk. This demo does not need
+a separate SQL Server, PostgreSQL, or cloud storage service for telemetry.
+
+The running `grafana/otel-lgtm:0.41.0` stack uses:
+
+| Data | Backend | Storage in this demo | Path inside the LGTM container |
+|---|---|---|---|
+| Metrics (durations, outcomes, queue depth) | Prometheus | Embedded time-series database (TSDB), with on-disk blocks and a write-ahead log. Not a relational SQL database. | `/data/prometheus` |
+| Logs (completion/failure messages) | Loki | Filesystem-backed log chunks with a TSDB index. Not plain-text application log files. | `/data/loki` |
+| Traces (spans across services) | Tempo | Local trace block files and a write-ahead log, rather than a separate database server. | `/data/tempo/blocks` and `/data/tempo/wal` |
+| Grafana application state | Grafana | SQLite database for Grafana metadata/settings, not the metrics, logs, or traces themselves. | `/data/grafana/data/grafana.db` |
+| Profiles, if supplied | Pyroscope | Filesystem-backed profile storage and metastore. The image includes it, but this demo's .NET instrumentation configures traces, metrics, and logs, not profiling. | `/data/pyroscope` |
+
+### Where the files live
+
+[compose.yaml](compose.yaml) mounts the Podman named volume `otel-data` at
+`/data` in the LGTM container. In this Compose project its actual volume name
+is `observability-demo_otel-data`. On Windows, its files live inside the Podman
+Linux machine, not in a normal folder under this repository.
+
+The repository's [grafana/](grafana/) folder contains version-controlled
+configuration and dashboard definitions only. Those files are mounted
+read-only into the container; collected telemetry is not written there.
+
+To inspect the volume metadata and its Linux mount path:
+
+```powershell
+podman volume inspect observability-demo_otel-data
+```
+
+Use Grafana at <http://127.0.0.1:3000/> to query telemetry rather than editing
+the database files directly. The named volume preserves data across container
+restarts and `podman compose down`, subject to each backend's retention policy.
+`podman compose down --volumes` deletes it, including stored telemetry and
+Grafana state; repository-provisioned dashboards are recreated on startup.
+The worker's in-memory order statuses and queue are separate from this volume
+and are lost when the worker process restarts.
 
 ## Health and reset
 
