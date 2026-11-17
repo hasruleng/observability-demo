@@ -9,6 +9,7 @@ customer data.
 ## Contents
 
 - [Architecture](#architecture)
+- [Related open-source projects](#related-open-source-projects)
 - [Requirements](#requirements)
 - [Run services directly on host (optional)](#run-services-directly-on-host-optional)
 - [Podman stack](#podman-stack)
@@ -70,6 +71,24 @@ classDiagram
     OTelLGTM --> GrafanaDashboard : provisions
     JMeter ..> OrderAPI : optional HTTP load
 ```
+
+## Related open-source projects
+
+These public projects explore similar observability, service architecture, or
+local telemetry-stack ideas. They are references, not dependencies of this demo.
+
+- [OpenTelemetry Demo](https://github.com/open-telemetry/opentelemetry-demo) —
+  the OpenTelemetry project's instrumented microservice-based e-commerce demo,
+  with traces, metrics, and logs across services.
+- [Grafana Intro to MLTP](https://github.com/grafana/intro-to-mltp) — a
+  multi-service sample application, load generator, and local Grafana
+  observability stack, similar to this demo's end-to-end walkthrough.
+- [Grafana Docker OTEL-LGTM](https://github.com/grafana/docker-otel-lgtm) —
+  the single-container local Grafana/OpenTelemetry backend. This repository
+  uses the `grafana/otel-lgtm` image in its Compose stack.
+- [dotnet/eShop](https://github.com/dotnet/eShop) — Microsoft's .NET
+  microservices reference app; useful for comparing .NET service structure and
+  shared Aspire service defaults with this demo's `Demo.ServiceDefaults`.
 
 ## Requirements
 
