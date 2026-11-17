@@ -74,21 +74,28 @@ classDiagram
 
 ## Related open-source projects
 
-These public projects explore similar observability, service architecture, or
-local telemetry-stack ideas. They are references, not dependencies of this demo.
+These selected public projects are ranked from most to least similar to the
+overall demo, prioritizing an end-to-end local observability walkthrough,
+sample services, and load generation over language or individual backend
+components. This is a qualitative comparison, not an exhaustive ranking of
+all open-source projects.
 
-- [OpenTelemetry Demo](https://github.com/open-telemetry/opentelemetry-demo) —
-  the OpenTelemetry project's instrumented microservice-based e-commerce demo,
-  with traces, metrics, and logs across services.
-- [Grafana Intro to MLTP](https://github.com/grafana/intro-to-mltp) — a
-  multi-service sample application, load generator, and local Grafana
-  observability stack, similar to this demo's end-to-end walkthrough.
-- [Grafana Docker OTEL-LGTM](https://github.com/grafana/docker-otel-lgtm) —
-  the single-container local Grafana/OpenTelemetry backend. This repository
-  uses the `grafana/otel-lgtm` image in its Compose stack.
-- [dotnet/eShop](https://github.com/dotnet/eShop) — Microsoft's .NET
-  microservices reference app; useful for comparing .NET service structure and
-  shared Aspire service defaults with this demo's `Demo.ServiceDefaults`.
+1. [Grafana Intro to MLTP](https://github.com/grafana/intro-to-mltp) —
+   closest overall in purpose and packaging: a multi-service sample application,
+   load generator, and local Grafana observability stack in a Compose sandbox.
+   It uses different application technologies and a larger telemetry stack.
+2. [OpenTelemetry Demo](https://github.com/open-telemetry/opentelemetry-demo) —
+   a close match for an instrumented e-commerce journey used to demonstrate
+   distributed-system observability. Astronomy Shop is a broader, polyglot
+   reference system rather than this demo's small .NET order flow.
+3. [dotnet/eShop](https://github.com/dotnet/eShop) —
+   closest in .NET application architecture and e-commerce domain, with Aspire
+   orchestration and shared service defaults. Its focus is a fuller reference
+   application, rather than a small Grafana-based observability walkthrough.
+4. [Grafana Docker OTEL-LGTM](https://github.com/grafana/docker-otel-lgtm) —
+   directly relevant infrastructure but least similar as a complete project:
+   it packages the telemetry backend, not an end-to-end sample business
+   application. This demo uses its `grafana/otel-lgtm` image in the Compose stack.
 
 ## Requirements
 
