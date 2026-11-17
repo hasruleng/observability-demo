@@ -21,38 +21,38 @@ customer data.
 classDiagram
     direction LR
 
-    class WebUI {
+    class WebUI["WebUI (web)"] {
         React order form
         Submits orders and polls status
     }
-    class OrderAPI {
+    class OrderAPI["OrderAPI (Demo.JourneyApi)"] {
         Create and query orders
         Forwards requests to worker
     }
-    class Worker {
+    class Worker["Worker (Demo.Worker)"] {
         Bounded in-memory queue
         In-memory order status
         Background order processor
     }
-    class Fulfillment {
+    class Fulfillment["Fulfillment (Demo.Dependency)"] {
         Configurable healthy, slow, failing scenarios
     }
-    class ServiceDefaults {
+    class ServiceDefaults["ServiceDefaults (Demo.ServiceDefaults)"] {
         Shared OpenTelemetry configuration
         Exports traces, metrics, and logs over OTLP
     }
-    class OrderTelemetry {
+    class OrderTelemetry["OrderTelemetry (Demo.ServiceDefaults)"] {
         Order duration and outcome metrics
         Worker queue and active worker metrics
     }
-    class OTelLGTM {
+    class OTelLGTM["OTelLGTM (compose.yaml)"] {
         OTLP ingestion
         Grafana, Loki, Tempo, Prometheus
     }
-    class GrafanaDashboard {
+    class GrafanaDashboard["GrafanaDashboard (grafana/dashboards)"] {
         Provisioned Order Flow dashboard
     }
-    class JMeter {
+    class JMeter["JMeter (load)"] {
         Optional load profile
         Capped at 80 synthetic orders
     }
