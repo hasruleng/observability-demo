@@ -6,6 +6,69 @@ OpenTelemetry instrumentation, local Grafana LGTM stack, and optional bounded
 JMeter plan. It requires no cloud account, company system, credentials, or real
 customer data.
 
+## Contents
+
+- [Architecture](#architecture)
+- [Requirements](#requirements)
+- [Build](#build)
+- [Run locally](#run-locally)
+- [Podman stack](#podman-stack)
+- [Health and reset](#health-and-reset)
+
+## Architecture
+
+```mermaid
+classDiagram
+    direction LR
+
+    class WebUI {
+        React order form
+        Submits orders and polls status
+    }
+    class OrderAPI {
+        Create and query orders
+        Forwards requests to worker
+    }
+    class Worker {
+        Bounded in-memory queue
+        In-memory order status
+        Background order processor
+    }
+    class Fulfillment {
+        Configurable healthy, slow, failing scenarios
+    }
+    class ServiceDefaults {
+        Shared OpenTelemetry configuration
+        Exports traces, metrics, and logs over OTLP
+    }
+    class OrderTelemetry {
+        Order duration and outcome metrics
+        Worker queue and active worker metrics
+    }
+    class OTelLGTM {
+        OTLP ingestion
+        Grafana, Loki, Tempo, Prometheus
+    }
+    class GrafanaDashboard {
+        Provisioned Order Flow dashboard
+    }
+    class JMeter {
+        Optional load profile
+        Capped at 80 synthetic orders
+    }
+
+    WebUI --> OrderAPI : HTTP
+    OrderAPI --> Worker : submit and query
+    Worker --> Fulfillment : process items
+    OrderAPI ..> ServiceDefaults : telemetry
+    Worker ..> ServiceDefaults : telemetry
+    Fulfillment ..> ServiceDefaults : telemetry
+    ServiceDefaults ..> OrderTelemetry : collects custom metrics
+    ServiceDefaults --> OTelLGTM : OTLP export
+    OTelLGTM --> GrafanaDashboard : provisions
+    JMeter ..> OrderAPI : optional HTTP load
+```
+
 ## Requirements
 
 - .NET SDK 10.0.403 (selected by `global.json`)
