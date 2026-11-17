@@ -1,14 +1,17 @@
 # Order Flow Demo Test Plan
 
 Use this checklist to verify the synthetic order flow locally. It uses no
-company systems, customer records, or production endpoints. Run the scenarios
-in order; restore fulfillment to `healthy` and let the queue drain after tests
-that use `slow` or `failing`.
+company systems, customer records, or production endpoints. Choose scenarios
+using their **When to run** guidance below. Start the stack with ND-2 before
+running checks that need live services; restore fulfillment to `healthy` and
+let the queue drain after tests that use `slow` or `failing`.
 
-Prerequisites: Windows PowerShell, .NET SDK 10.0.403, Node.js/npm for the web
-build, and Podman with the Compose provider configured as described in the
-README. The first restore/build may require internet access to download packages
-and container images.
+Prerequisites: Windows PowerShell and Podman with the Compose provider configured
+as described in the README. The optional host builds in ND-1 additionally need
+.NET SDK 10.0.403 and Node.js/npm on the host. Container builds install and run
+their build tools inside the images, so those host tools are not required for
+the Podman-only path. The first build may require internet access to download
+packages and container images.
 
 ## Run Record
 
@@ -24,12 +27,18 @@ and container images.
 
 For each scenario, mark the expected-result checks and record useful evidence,
 observations, or failure details in its Notes field.
+For a skipped scenario, leave its outcome unchecked and record `NOT RUN` with
+the reason in Notes; do not mark it as passed. Mark the overall result
+`INCOMPLETE` if any checks required for your chosen scope remain unverified.
 
 ## Scenario Groups
 
-Complete the non-demo checks before the presentation. Use the demo group as the
-live walkthrough sequence; it focuses on visible order outcomes and the
-observability story.
+Non-demo scenarios are preparation and regression checks, not mandatory steps
+for every startup. For a basic functional check, run ND-2 and D-1. For the full
+observability walkthrough, also run D-2 through D-5. D-6 is an optional load
+demonstration; choose other non-demo checks according to what changed and the
+capabilities you need to verify. Rehearse your selected demo scenarios before
+the presentation.
 
 ### Non-Demo Scenarios
 
@@ -53,9 +62,19 @@ observability story.
 
 ### ND-1. Build and Compose Configuration
 
+**Why / benefit:** Separates source-build problems from container/runtime
+problems and checks Compose wiring and loopback-only port exposure. The host
+builds verify your local development toolchain, not a prerequisite for Podman.
+
+**When to run:** Run host builds after source/dependency changes if you develop
+outside containers or want earlier build feedback. Skip them for a Podman-only
+workflow: ND-2 builds the .NET services and web app inside their images. Run
+`podman compose config` after Compose changes or when diagnosing configuration
+problems; it validates configuration but does not build or start anything.
+
 **Steps**
 
-1. From the repository root, run:
+1. Optionally verify host builds from the repository root:
 
    ```powershell
    dotnet restore Demo.sln --configfile NuGet.Config
@@ -64,13 +83,18 @@ observability story.
    npm ci
    npm run build
    Pop-Location
+   ```
+
+2. Validate Compose configuration from the repository root:
+
+   ```powershell
    podman compose config
    ```
 
 **Expected results**
 
-- [ ] PASS [ ] FAIL - .NET restore and build complete without errors.
-- [ ] PASS [ ] FAIL - The web TypeScript and production build complete without errors.
+- [ ] PASS [ ] FAIL [ ] N/A - .NET restore and build complete without errors (N/A if host builds are skipped).
+- [ ] PASS [ ] FAIL [ ] N/A - The web TypeScript and production build complete without errors (N/A if host builds are skipped).
 - [ ] PASS [ ] FAIL - Compose configuration renders all services without errors.
 - [ ] PASS [ ] FAIL - Host-published ports in the rendered Compose configuration bind to `127.0.0.1`.
 
@@ -80,6 +104,15 @@ observability story.
 
 
 ### ND-2. Start the Stack and Check Health
+
+**Why / benefit:** Verifies that container images can build, services can start,
+and the UI and Grafana are reachable. Successful host builds alone cannot prove
+that container networking, configuration, or runtime dependencies work.
+
+**When to run:** Run on first setup, after rebuilding or restarting the stack,
+and before a demo. This is the baseline for all live-service scenarios. If the
+stack is already running with the intended images, repeat the status and health
+checks without unnecessarily rebuilding.
 
 **Steps**
 
@@ -109,6 +142,14 @@ observability story.
 
 ### D-1. Place a Healthy Order in the UI
 
+**Why / benefit:** Confirms the complete business flow, not just health
+endpoints: UI submission, API forwarding, queued work, fulfillment, and status
+polling all work together.
+
+**When to run:** Run after ND-2 for a basic functional check, after changes to
+any order-flow component, and before every order-flow demo. Use it as the healthy
+baseline for the slow and failing scenarios.
+
 **Steps**
 
 1. Set fulfillment to the baseline scenario:
@@ -133,6 +174,14 @@ observability story.
 
 
 ### D-2. Slow Fulfillment Is Visible
+
+**Why / benefit:** Demonstrates that slow downstream work stays visible as a
+pending order rather than looking like an unresponsive UI. The smoke script
+also checks healthy, slow, and failing backend behavior independently of the UI.
+
+**When to run:** Run when demonstrating latency or after changes to processing,
+polling, or scenario behavior. Skip for a healthy-path-only check; this is not
+required to start the stack. Compare against a healthy baseline from D-1.
 
 **Steps**
 
@@ -164,6 +213,14 @@ observability story.
 
 ### D-3. Failed Fulfillment Is Reported
 
+**Why / benefit:** Verifies that a downstream failure becomes an explicit
+failed order with useful diagnostic IDs, rather than a false success or an
+order left pending.
+
+**When to run:** Run before a failure-handling demo or after changes to error
+handling, status propagation, or fulfillment. Skip if your current scope is
+only startup or healthy-path verification.
+
 **Steps**
 
 1. Set the failing scenario:
@@ -186,6 +243,14 @@ observability story.
 
 
 ### ND-3. Input Boundaries
+
+**Why / benefit:** Checks that both the browser and API enforce the synthetic
+item-count limits. API checks matter because callers can bypass browser
+validation.
+
+**When to run:** Run after changes to form validation, request handling, or
+item-count limits, or as a pre-release regression check. It is not necessary
+for each stack startup or observability walkthrough.
 
 **Steps**
 
@@ -210,6 +275,13 @@ observability story.
 
 ### ND-4. Responsive UI
 
+**Why / benefit:** Ensures the order controls and diagnostic results remain
+usable at different screen sizes, including narrow windows during a demo.
+
+**When to run:** Run after layout/style changes or before presenting on a new
+screen size or browser. Skip for backend-only changes when the UI and
+presentation environment are unchanged.
+
 **Steps**
 
 1. Open the order page at a desktop-sized viewport.
@@ -228,6 +300,14 @@ observability story.
 
 
 ### D-4. Trace and Log Correlation
+
+**Why / benefit:** Proves that an order can be followed across service
+boundaries and matched to its worker log. A successful order alone does not
+prove that traces and logs reach the telemetry backends.
+
+**When to run:** Run for an observability walkthrough and after changes to
+instrumentation, trace propagation, OTLP configuration, or Grafana data sources.
+Skip only when telemetry is outside the scope of your check.
 
 **Steps**
 
@@ -248,6 +328,14 @@ observability story.
 
 ### D-5. Order Flow Dashboard
 
+**Why / benefit:** Verifies that custom metrics reach the provisioned dashboard
+and show business outcomes and worker activity. Trace/log checks in D-4 do not
+validate the separate metrics pipeline or panel queries.
+
+**When to run:** Run before presenting the dashboard and after changes to
+metrics, export settings, dashboard provisioning, or panel queries. Skip for a
+functional-only check where dashboard behavior is not in scope.
+
 **Steps**
 
 1. Set fulfillment to `healthy` and place several orders.
@@ -266,6 +354,16 @@ observability story.
 
 
 ### D-6. Bounded Load and Queue Recovery
+
+**Why / benefit:** Creates enough queued work to demonstrate backlog, worker
+utilization, higher latency, and eventual recovery. A single order does not
+exercise these conditions. This bounded local profile is a demonstration, not
+a production capacity benchmark.
+
+**When to run:** Optional. Run when demonstrating queue saturation/recovery or
+after changes to queueing, processing speed, or load-related metrics. First
+verify basic order processing and the dashboard; allow time for the queue to
+drain and avoid running other order tests concurrently.
 
 **Steps**
 
@@ -302,6 +400,15 @@ observability story.
 
 ### ND-5. Clean Reset and Dashboard Provisioning
 
+**Why / benefit:** Verifies that dashboard provisioning works with empty
+telemetry storage rather than relying on data or setup left over from an
+earlier run.
+
+**When to run:** Run after changes to provisioning or persistence, when
+rehearsing a clean setup, or when intentionally verifying reset behavior.
+Skip routine startups and any run where you need to preserve telemetry
+evidence; this is a destructive reset, not a prerequisite for other scenarios.
+
 **Warning:** `podman compose down --volumes` deletes this demo's local telemetry
 volume and its stored telemetry data.
 
@@ -329,6 +436,15 @@ volume and its stored telemetry data.
 
 
 ### ND-6. Optional: Disconnected Start
+
+**Why / benefit:** Checks whether the already-built stack can start and serve
+the demo without external network access, reducing the risk of presentation
+network failures. It does not verify offline image builds or dependency restores.
+
+**When to run:** Optional. Run before a presentation that requires offline
+operation, with all images already built/cached and after ND-2 succeeds.
+Skip if offline operation is not a requirement or disconnecting would disrupt
+other work.
 
 This check is not yet verified. Run it only when the required images and
 dependencies are already cached locally.
