@@ -1,10 +1,10 @@
-# Observability Demo
+# Order Flow Observability Demo
 
-Independent synthetic demo for the November 26, 2026 talk. It contains a .NET 10
-Journey API, an in-memory worker, a fake dependency, a React UI, OpenTelemetry
-instrumentation, a local Grafana LGTM stack definition, and an optional bounded
-JMeter plan. It uses no Azure services, Scholt systems, credentials, or customer
-data.
+Standalone synthetic observability demo with a fictional order-placement flow:
+a .NET 10 Order API, in-memory worker, fake fulfillment service, React UI,
+OpenTelemetry instrumentation, local Grafana LGTM stack, and optional bounded
+JMeter plan. It requires no cloud account, company system, credentials, or real
+customer data.
 
 ## Requirements
 
@@ -26,7 +26,7 @@ dotnet build Demo.sln --no-restore
 
 Open three PowerShell terminals in this directory for the services.
 
-Terminal 1, fake dependency:
+Terminal 1, fake fulfillment service (project `Demo.Dependency`):
 
 ```powershell
 dotnet run --no-build --project .\Demo.Dependency\Demo.Dependency.csproj --urls http://127.0.0.1:8082
@@ -35,11 +35,11 @@ dotnet run --no-build --project .\Demo.Dependency\Demo.Dependency.csproj --urls 
 Terminal 2, worker:
 
 ```powershell
-$env:DEPENDENCY_URL = 'http://127.0.0.1:8082'
+$env:FULFILLMENT_URL = 'http://127.0.0.1:8082'
 dotnet run --no-build --project .\Demo.Worker\Demo.Worker.csproj --urls http://127.0.0.1:8081
 ```
 
-Terminal 3, Journey API:
+Terminal 3, Order API (project `Demo.JourneyApi`):
 
 ```powershell
 $env:WORKER_URL = 'http://127.0.0.1:8081'
@@ -53,9 +53,10 @@ All endpoints bind to loopback. With the three services running, execute:
 ```
 
 The smoke script checks all health endpoints, then exercises healthy, slow, and
-failing journeys. Stop each service with Ctrl+C. OpenTelemetry OTLP export is
-wired to `OTEL_EXPORTER_OTLP_ENDPOINT`. To run the React UI locally, open another
-terminal in `web/` and run `npm run dev`; open `http://127.0.0.1:5173/`.
+failing order submissions. Stop each service with Ctrl+C. OpenTelemetry OTLP
+export is wired to `OTEL_EXPORTER_OTLP_ENDPOINT`. To run the React UI locally,
+open another terminal in `web/` and run `npm run dev`; open
+`http://127.0.0.1:5173/`.
 Custom metrics export every 10 seconds so the dashboard responds quickly during
 the walkthrough.
 
@@ -82,11 +83,11 @@ podman compose up --build
 
 Open the UI at `http://127.0.0.1:5173/` and Grafana at
 `http://127.0.0.1:3000/`. All published ports bind to loopback. Switch the fake
-dependency with `.\scripts\set-scenario.ps1 -Name slow` (replace `slow` with
+fulfillment service with `.\scripts\set-scenario.ps1 -Name slow` (replace `slow` with
 `healthy` or `failing`).
 
-For the optional load profile, first set the dependency to `slow`, then run the
-JMeter scenario capped at 80 synthetic requests:
+For the optional load profile, first set fulfillment to `slow`, then run the
+JMeter scenario capped at 80 synthetic orders:
 
 ```powershell
 .\scripts\set-scenario.ps1 -Name slow
@@ -94,7 +95,7 @@ podman compose --profile load run --rm jmeter
 ```
 
 The stack is running and has been smoke-tested. Grafana is at
-`http://127.0.0.1:3000/`; the Journey Lab dashboard is provisioned on startup.
+`http://127.0.0.1:3000/`; the Order Flow dashboard is provisioned on startup.
 The LGTM Prometheus config scrapes every five seconds, and the .NET metric
 exporter flushes every ten seconds so short load spikes are visible.
 
@@ -124,5 +125,5 @@ podman compose up -d
 
 For an offline start after the images and dependencies are cached, use
 `podman compose up -d` without `--build`. The fully disconnected start has not
-been tested yet. Set the dependency back to `healthy` before stopping if it was
+been tested yet. Set fulfillment back to `healthy` before stopping if it was
 left in `slow` or `failing` mode.

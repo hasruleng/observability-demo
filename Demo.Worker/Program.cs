@@ -5,26 +5,26 @@ using System.Net.Http.Json;
 using System.Threading.Channels;
 using Demo.ServiceDefaults;
 
-var builder = WebApplication.CreateBuilder(args).AddDemoTelemetry("worker");
+var builder = WebApplication.CreateBuilder(args).AddDemoTelemetry("order-worker");
 builder.Services.AddHttpClient();
-builder.Services.AddSingleton<JourneyStore>();
+builder.Services.AddSingleton<OrderStore>();
 builder.Services.AddSingleton<WorkerMetrics>();
-builder.Services.AddSingleton(_ => Channel.CreateBounded<QueuedJourney>(new BoundedChannelOptions(64)
+builder.Services.AddSingleton(_ => Channel.CreateBounded<QueuedOrder>(new BoundedChannelOptions(64)
 {
     FullMode = BoundedChannelFullMode.Wait,
     SingleReader = true,
     SingleWriter = false
 }));
-builder.Services.AddHostedService<JourneyProcessor>();
+builder.Services.AddHostedService<OrderProcessor>();
 
 var app = builder.Build();
 
-app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "worker" }));
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "order-worker" }));
 
 app.MapPost("/work", async Task<IResult> (
     WorkRequest request,
-    Channel<QueuedJourney> queue,
-    JourneyStore journeys,
+    Channel<QueuedOrder> queue,
+    OrderStore orders,
     WorkerMetrics metrics,
     CancellationToken cancellationToken) =>
 {
@@ -34,38 +34,38 @@ app.MapPost("/work", async Task<IResult> (
     }
 
     var submittedAt = DateTimeOffset.UtcNow;
-    journeys.Add(request.JourneyId, request.ItemCount, submittedAt);
-    var queuedJourney = new QueuedJourney(
-        request.JourneyId,
+    orders.Add(request.OrderId, request.ItemCount, submittedAt);
+    var queuedOrder = new QueuedOrder(
+        request.OrderId,
         request.ItemCount,
         submittedAt,
         Activity.Current?.Context ?? default);
 
     metrics.OnEnqueued();
-    if (!queue.Writer.TryWrite(queuedJourney))
+    if (!queue.Writer.TryWrite(queuedOrder))
     {
         metrics.OnDequeued();
-        journeys.SetStatus(request.JourneyId, "failed", "The worker queue is closed.");
+        orders.SetStatus(request.OrderId, "failed", "The worker queue is closed.");
         return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
     }
 
-    return Results.Accepted($"/work/{request.JourneyId}", new
+    return Results.Accepted($"/work/{request.OrderId}", new
     {
-        request.JourneyId,
+        request.OrderId,
         status = "pending"
     });
 });
 
-app.MapGet("/work/{journeyId:guid}", (Guid journeyId, JourneyStore journeys) =>
-    journeys.TryGet(journeyId, out var journey) ? Results.Ok(journey) : Results.NotFound());
+app.MapGet("/work/{orderId:guid}", (Guid orderId, OrderStore orders) =>
+    orders.TryGet(orderId, out var order) ? Results.Ok(order) : Results.NotFound());
 
 app.Run();
 
-sealed record WorkRequest(Guid JourneyId, int ItemCount);
-sealed record QueuedJourney(Guid JourneyId, int ItemCount, DateTimeOffset SubmittedAt, ActivityContext ParentContext);
+sealed record WorkRequest(Guid OrderId, int ItemCount);
+sealed record QueuedOrder(Guid OrderId, int ItemCount, DateTimeOffset SubmittedAt, ActivityContext ParentContext);
 
-sealed record JourneyStatus(
-    Guid JourneyId,
+sealed record OrderStatus(
+    Guid OrderId,
     int ItemCount,
     string Status,
     DateTimeOffset SubmittedAt,
@@ -76,27 +76,27 @@ sealed record JourneyStatus(
         Math.Round(((FinishedAt ?? DateTimeOffset.UtcNow) - SubmittedAt).TotalMilliseconds, 1);
 }
 
-sealed class JourneyStore
+sealed class OrderStore
 {
-    private readonly ConcurrentDictionary<Guid, JourneyStatus> _journeys = new();
+    private readonly ConcurrentDictionary<Guid, OrderStatus> _orders = new();
 
-    public void Add(Guid journeyId, int itemCount, DateTimeOffset submittedAt) =>
-        _journeys[journeyId] = new JourneyStatus(
-            journeyId,
+    public void Add(Guid orderId, int itemCount, DateTimeOffset submittedAt) =>
+        _orders[orderId] = new OrderStatus(
+            orderId,
             itemCount,
             "pending",
             submittedAt,
             null,
             null);
 
-    public bool TryGet(Guid journeyId, out JourneyStatus journey) =>
-        _journeys.TryGetValue(journeyId, out journey!);
+    public bool TryGet(Guid orderId, out OrderStatus order) =>
+        _orders.TryGetValue(orderId, out order!);
 
-    public void SetStatus(Guid journeyId, string status, string? error = null)
+    public void SetStatus(Guid orderId, string status, string? error = null)
     {
-        if (_journeys.TryGetValue(journeyId, out var journey))
+        if (_orders.TryGetValue(orderId, out var order))
         {
-            _journeys[journeyId] = journey with
+            _orders[orderId] = order with
             {
                 Status = status,
                 FinishedAt = DateTimeOffset.UtcNow,
@@ -117,13 +117,13 @@ sealed class WorkerMetrics : IDisposable
         _meter.CreateObservableGauge<long>(
             "demo.worker.queue.depth",
             ObserveQueueDepth,
-            "journeys",
-            "Journeys waiting in the worker queue.");
+            "orders",
+            "Orders waiting in the worker queue.");
         _meter.CreateObservableGauge<long>(
             "demo.worker.active",
             ObserveActiveWorkers,
             "workers",
-            "Journeys currently being processed.");
+            "Orders currently being processed.");
     }
 
     public void OnEnqueued() => Interlocked.Increment(ref _queueDepth);
@@ -141,55 +141,55 @@ sealed class WorkerMetrics : IDisposable
     public void Dispose() => _meter.Dispose();
 }
 
-sealed class JourneyProcessor(
-    Channel<QueuedJourney> queue,
-    JourneyStore journeys,
+sealed class OrderProcessor(
+    Channel<QueuedOrder> queue,
+    OrderStore orders,
     WorkerMetrics metrics,
     IHttpClientFactory clients,
     IConfiguration configuration,
-    ILogger<JourneyProcessor> logger) : BackgroundService
+    ILogger<OrderProcessor> logger) : BackgroundService
 {
     private static readonly ActivitySource ActivitySource = new("Demo.Worker");
-    private readonly string _dependencyBaseUrl =
-        configuration["DEPENDENCY_URL"] ?? "http://localhost:8082";
+    private readonly string _fulfillmentBaseUrl =
+        configuration["FULFILLMENT_URL"] ?? "http://localhost:8082";
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await foreach (var journey in queue.Reader.ReadAllAsync(stoppingToken))
+        await foreach (var order in queue.Reader.ReadAllAsync(stoppingToken))
         {
             metrics.OnDequeued();
             metrics.OnStarted();
             using var activity = ActivitySource.StartActivity(
-                "journey.process",
+                "order.process",
                 ActivityKind.Consumer,
-                journey.ParentContext);
-            activity?.SetTag("journey.id", journey.JourneyId);
-            activity?.SetTag("item.count", journey.ItemCount);
+                order.ParentContext);
+            activity?.SetTag("order.id", order.OrderId);
+            activity?.SetTag("item.count", order.ItemCount);
 
             try
             {
                 using var response = await clients.CreateClient().PostAsJsonAsync(
-                    $"{_dependencyBaseUrl.TrimEnd('/')}/process",
-                    new DependencyRequest(journey.ItemCount),
+                    $"{_fulfillmentBaseUrl.TrimEnd('/')}/process",
+                    new FulfillmentRequest(order.ItemCount),
                     stoppingToken);
 
                 if (!response.IsSuccessStatusCode)
                 {
                     var details = await response.Content.ReadAsStringAsync(stoppingToken);
                     throw new HttpRequestException(
-                        $"Dependency returned {(int)response.StatusCode}: {details}",
+                        $"Fulfillment returned {(int)response.StatusCode}: {details}",
                         null,
                         response.StatusCode);
                 }
 
-                journeys.SetStatus(journey.JourneyId, "completed");
-                JourneyTelemetry.RecordCompletion(
-                    (DateTimeOffset.UtcNow - journey.SubmittedAt).TotalMilliseconds,
+                orders.SetStatus(order.OrderId, "completed");
+                OrderTelemetry.RecordCompletion(
+                    (DateTimeOffset.UtcNow - order.SubmittedAt).TotalMilliseconds,
                     "completed");
                 logger.LogInformation(
-                    "Journey {JourneyId} completed with {ItemCount} items",
-                    journey.JourneyId,
-                    journey.ItemCount);
+                    "Order {OrderId} completed with {ItemCount} items",
+                    order.OrderId,
+                    order.ItemCount);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
@@ -197,15 +197,15 @@ sealed class JourneyProcessor(
             }
             catch (Exception exception)
             {
-                journeys.SetStatus(journey.JourneyId, "failed", exception.Message);
-                JourneyTelemetry.RecordCompletion(
-                    (DateTimeOffset.UtcNow - journey.SubmittedAt).TotalMilliseconds,
+                orders.SetStatus(order.OrderId, "failed", exception.Message);
+                OrderTelemetry.RecordCompletion(
+                    (DateTimeOffset.UtcNow - order.SubmittedAt).TotalMilliseconds,
                     "failed");
                 logger.LogError(
                     exception,
-                    "Journey {JourneyId} failed while processing {ItemCount} items",
-                    journey.JourneyId,
-                    journey.ItemCount);
+                    "Order {OrderId} failed while processing {ItemCount} items",
+                    order.OrderId,
+                    order.ItemCount);
             }
             finally
             {
@@ -215,4 +215,4 @@ sealed class JourneyProcessor(
     }
 }
 
-sealed record DependencyRequest(int ItemCount);
+sealed record FulfillmentRequest(int ItemCount);

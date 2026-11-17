@@ -2,19 +2,19 @@ using System.Diagnostics.Metrics;
 
 namespace Demo.ServiceDefaults;
 
-public static class JourneyTelemetry
+public static class OrderTelemetry
 {
-    private static readonly Meter Meter = new("Demo.Journey");
+    private static readonly Meter Meter = new("Demo.Order");
     private static readonly Histogram<double> Duration =
         Meter.CreateHistogram<double>(
-            "demo.journey.duration",
+            "demo.order.duration",
             "ms",
             advice: new InstrumentAdvice<double>
             {
                 HistogramBucketBoundaries = [100, 250, 500, 1_000, 2_500, 5_000, 10_000, 30_000, 60_000, 120_000]
             });
     private static readonly Counter<long> Outcomes =
-        Meter.CreateCounter<long>("demo.journey.outcomes");
+        Meter.CreateCounter<long>("demo.order.outcomes");
 
     public static void RecordCompletion(double elapsedMilliseconds, string outcome)
     {

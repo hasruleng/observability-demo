@@ -35,7 +35,7 @@ public static class TelemetryExtensions
             .WithMetrics(metrics => metrics
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
-                .AddMeter("Demo.Journey", "Demo.Worker")
+                .AddMeter("Demo.Order", "Demo.Worker")
                 .AddOtlpExporter((_, readerOptions) =>
                     readerOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 10_000));
 

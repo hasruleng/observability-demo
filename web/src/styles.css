@@ -149,10 +149,10 @@ button {
   background: var(--acid);
   font-size: 14px;
   font-weight: 800;
-  transition: background-color 140ms ease, transform 140ms ease;
+  transition: background-color 140ms ease;
 }
 
-button:hover:not(:disabled) { background: #d7ff8b; transform: translateY(-1px); }
+button:hover:not(:disabled) { background: #d7ff8b; }
 button:disabled { cursor: wait; opacity: 0.72; }
 button span { font-size: 18px; }
 .field-note { margin: 9px 0 0; color: var(--muted); font-size: 12px; }
@@ -220,7 +220,7 @@ button span { font-size: 18px; }
 }
 .trace-row > span { color: var(--muted); }
 code { min-width: 0; color: #d1d9c8; font-family: Consolas, monospace; font-size: 11px; overflow-wrap: anywhere; }
-.journey-id { margin: 12px 0 0; color: var(--muted); font-size: 11px; }
+.order-id { margin: 12px 0 0; color: var(--muted); font-size: 11px; }
 .error-message { margin: 14px 0 0; color: var(--coral); font-size: 13px; overflow-wrap: anywhere; }
 
 .footnote {

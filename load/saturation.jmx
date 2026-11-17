@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
-    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Journey API bounded saturation" enabled="true">
-      <stringProp name="TestPlan.comments">Four threads, twenty iterations each, and a 200 ms timer. Maximum 80 synthetic requests, sent only to the local Compose Journey API.</stringProp>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Order API bounded saturation" enabled="true">
+      <stringProp name="TestPlan.comments">Four threads, twenty iterations each, and a one-second timer. Maximum 80 synthetic order requests, sent only to the local Compose Order API.</stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
       <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
       <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
@@ -34,7 +34,7 @@
           </collectionProp>
         </HeaderManager>
         <hashTree />
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Start synthetic journey" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Place synthetic order" enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -45,11 +45,11 @@
               </elementProp>
             </collectionProp>
           </elementProp>
-          <stringProp name="HTTPSampler.domain">journey-api</stringProp>
+          <stringProp name="HTTPSampler.domain">order-api</stringProp>
           <stringProp name="HTTPSampler.port">8080</stringProp>
           <stringProp name="HTTPSampler.protocol">http</stringProp>
           <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
-          <stringProp name="HTTPSampler.path">/journeys</stringProp>
+          <stringProp name="HTTPSampler.path">/orders</stringProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">false</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>

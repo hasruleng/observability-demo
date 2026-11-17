@@ -2,16 +2,16 @@ using System.Diagnostics;
 using System.Net.Http.Json;
 using Demo.ServiceDefaults;
 
-var builder = WebApplication.CreateBuilder(args).AddDemoTelemetry("journey-api");
+var builder = WebApplication.CreateBuilder(args).AddDemoTelemetry("order-api");
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
 var workerBaseUrl = builder.Configuration["WORKER_URL"] ?? "http://localhost:8081";
 
-app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "journey-api" }));
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "order-api" }));
 
-app.MapPost("/journeys", async Task<IResult> (
-    JourneyRequest request,
+app.MapPost("/orders", async Task<IResult> (
+    OrderRequest request,
     IHttpClientFactory clients,
     CancellationToken cancellationToken) =>
 {
@@ -20,31 +20,31 @@ app.MapPost("/journeys", async Task<IResult> (
         return Results.BadRequest("ItemCount must be between 1 and 50.");
     }
 
-    var journeyId = Guid.NewGuid();
+    var orderId = Guid.NewGuid();
     using var response = await clients.CreateClient().PostAsJsonAsync(
         $"{workerBaseUrl.TrimEnd('/')}/work",
-        new WorkRequest(journeyId, request.ItemCount),
+        new WorkRequest(orderId, request.ItemCount),
         cancellationToken);
 
     if (!response.IsSuccessStatusCode)
     {
         return Results.Problem(
-            detail: "The worker could not accept the journey.",
+            detail: "The worker could not accept the order.",
             statusCode: StatusCodes.Status502BadGateway);
     }
 
     return Results.Accepted(
-        $"/journeys/{journeyId}",
-        new JourneyAccepted(journeyId, Activity.Current?.TraceId.ToString()));
+        $"/orders/{orderId}",
+        new OrderAccepted(orderId, Activity.Current?.TraceId.ToString()));
 });
 
-app.MapGet("/journeys/{journeyId:guid}", async Task<IResult> (
-    Guid journeyId,
+app.MapGet("/orders/{orderId:guid}", async Task<IResult> (
+    Guid orderId,
     IHttpClientFactory clients,
     CancellationToken cancellationToken) =>
 {
     using var response = await clients.CreateClient().GetAsync(
-        $"{workerBaseUrl.TrimEnd('/')}/work/{journeyId}",
+        $"{workerBaseUrl.TrimEnd('/')}/work/{orderId}",
         cancellationToken);
 
     if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -55,22 +55,22 @@ app.MapGet("/journeys/{journeyId:guid}", async Task<IResult> (
     if (!response.IsSuccessStatusCode)
     {
         return Results.Problem(
-            detail: "The worker could not return journey status.",
+            detail: "The worker could not return order status.",
             statusCode: StatusCodes.Status502BadGateway);
     }
 
-    var status = await response.Content.ReadFromJsonAsync<JourneyStatus>(
+    var status = await response.Content.ReadFromJsonAsync<OrderStatus>(
         cancellationToken: cancellationToken);
     return status is null ? Results.Problem("The worker returned an empty status.") : Results.Ok(status);
 });
 
 app.Run();
 
-sealed record JourneyRequest(int ItemCount);
-sealed record WorkRequest(Guid JourneyId, int ItemCount);
-sealed record JourneyAccepted(Guid JourneyId, string? TraceId);
-sealed record JourneyStatus(
-    Guid JourneyId,
+sealed record OrderRequest(int ItemCount);
+sealed record WorkRequest(Guid OrderId, int ItemCount);
+sealed record OrderAccepted(Guid OrderId, string? TraceId);
+sealed record OrderStatus(
+    Guid OrderId,
     int ItemCount,
     string Status,
     DateTimeOffset SubmittedAt,

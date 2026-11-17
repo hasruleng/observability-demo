@@ -3,13 +3,13 @@ import type { FormEvent } from 'react';
 
 type Phase = 'idle' | 'starting' | 'pending' | 'completed' | 'failed' | 'error';
 
-type JourneyAccepted = {
-  journeyId: string;
+type OrderAccepted = {
+  orderId: string;
   traceId: string | null;
 };
 
-type JourneyStatus = {
-  journeyId: string;
+type OrderStatus = {
+  orderId: string;
   itemCount: number;
   status: 'pending' | 'completed' | 'failed';
   elapsedMilliseconds: number;
@@ -28,15 +28,15 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
 export default function App() {
   const [itemCount, setItemCount] = useState(8);
   const [phase, setPhase] = useState<Phase>('idle');
-  const [journeyId, setJourneyId] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [traceId, setTraceId] = useState<string | null>(null);
-  const [journey, setJourney] = useState<JourneyStatus | null>(null);
+  const [order, setOrder] = useState<OrderStatus | null>(null);
   const [browserElapsedMilliseconds, setBrowserElapsedMilliseconds] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const journeyStartedAt = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!journeyId) {
+    if (!orderId) {
       return;
     }
 
@@ -45,12 +45,12 @@ export default function App() {
 
     const poll = async () => {
       try {
-        const status = await requestJson<JourneyStatus>(`/api/journeys/${journeyId}`);
+        const status = await requestJson<OrderStatus>(`/api/orders/${orderId}`);
         if (!active) {
           return;
         }
 
-        setJourney(status);
+        setOrder(status);
         if (status.status === 'pending') {
           timer = window.setTimeout(poll, 350);
         } else {
@@ -63,7 +63,7 @@ export default function App() {
       } catch (requestError) {
         if (active) {
           setPhase('error');
-          setError(requestError instanceof Error ? requestError.message : 'Journey status unavailable.');
+          setError(requestError instanceof Error ? requestError.message : 'Order status unavailable.');
         }
       }
     };
@@ -75,30 +75,30 @@ export default function App() {
         window.clearTimeout(timer);
       }
     };
-  }, [journeyId]);
+  }, [orderId]);
 
-  async function startJourney(event: FormEvent<HTMLFormElement>) {
+  async function startOrder(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPhase('starting');
-    setJourneyId(null);
+    setOrderId(null);
     setTraceId(null);
-    setJourney(null);
+    setOrder(null);
     setBrowserElapsedMilliseconds(null);
     setError(null);
     journeyStartedAt.current = performance.now();
 
     try {
-      const accepted = await requestJson<JourneyAccepted>('/api/journeys', {
+      const accepted = await requestJson<OrderAccepted>('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ itemCount }),
       });
       setTraceId(accepted.traceId);
-      setJourneyId(accepted.journeyId);
+      setOrderId(accepted.orderId);
       setPhase('pending');
     } catch (requestError) {
       setPhase('error');
-      setError(requestError instanceof Error ? requestError.message : 'Journey could not be started.');
+      setError(requestError instanceof Error ? requestError.message : 'Order could not be started.');
     }
   }
 
@@ -114,24 +114,24 @@ export default function App() {
   return (
     <main className="page-shell">
       <header className="topbar">
-        <a className="brand" href="/" aria-label="Journey Lab home">
-          <span className="brand-mark" aria-hidden="true">J</span>
-          <span>Journey Lab</span>
+        <a className="brand" href="/" aria-label="Order Flow home">
+          <span className="brand-mark" aria-hidden="true">O</span>
+          <span>Order Flow</span>
         </a>
         <div className="environment"><span /> LOCAL / SYNTHETIC</div>
       </header>
 
       <section className="intro">
         <p className="eyebrow">A small system, seen end to end</p>
-        <h1>Create contract<span>.</span></h1>
-        <p className="intro-copy">Follow one request across the API, worker, and dependency.</p>
+        <h1>Place an order<span>.</span></h1>
+        <p className="intro-copy">Follow a synthetic order across the API, worker, and fulfillment service.</p>
       </section>
 
-      <section className="workbench" aria-label="Journey controls and result">
+      <section className="workbench" aria-label="Order controls and result">
         <div className="control-pane">
-          <div className="section-index"><span>01</span> START A JOURNEY</div>
-          <form onSubmit={startJourney}>
-            <label htmlFor="item-count">Synthetic line items</label>
+          <div className="section-index"><span>01</span> START AN ORDER</div>
+          <form onSubmit={startOrder}>
+            <label htmlFor="item-count">Items in order</label>
             <div className="form-row">
               <input
                 id="item-count"
@@ -143,7 +143,7 @@ export default function App() {
                 required
               />
               <button type="submit" disabled={phase === 'starting' || phase === 'pending'}>
-                {phase === 'starting' || phase === 'pending' ? 'Running…' : 'Start journey'}
+                {phase === 'starting' || phase === 'pending' ? 'Placing…' : 'Place order'}
                 <span aria-hidden="true">↗</span>
               </button>
             </div>
@@ -152,9 +152,9 @@ export default function App() {
 
           <ol className="service-path" aria-label="Request path">
             <li><span>01</span><strong>Browser</strong></li>
-            <li><span>02</span><strong>Journey API</strong></li>
+            <li><span>02</span><strong>Order API</strong></li>
             <li><span>03</span><strong>Worker</strong></li>
-            <li><span>04</span><strong>Team B</strong></li>
+            <li><span>04</span><strong>Fulfillment</strong></li>
           </ol>
         </div>
 
@@ -164,25 +164,25 @@ export default function App() {
             <span className={`status status-${phase}`}><i />{statusLabel}</span>
           </div>
 
-          {journey ? (
+          {order ? (
             <dl className="measurements">
               <div>
-                <dt>Journey duration</dt>
-                <dd>{((browserElapsedMilliseconds ?? journey.elapsedMilliseconds) / 1000).toFixed(2)}<small> s</small></dd>
+                <dt>Order duration</dt>
+                <dd>{((browserElapsedMilliseconds ?? order.elapsedMilliseconds) / 1000).toFixed(2)}<small> s</small></dd>
               </div>
               <div>
-                <dt>Line items</dt>
-                <dd>{journey.itemCount}</dd>
+                <dt>Items</dt>
+                <dd>{order.itemCount}</dd>
               </div>
               <div>
                 <dt>Outcome</dt>
-                <dd className={`outcome outcome-${journey.status}`}>{journey.status}</dd>
+                <dd className={`outcome outcome-${order.status}`}>{order.status}</dd>
               </div>
             </dl>
           ) : (
             <div className="empty-result">
               <div className="pulse-line" aria-hidden="true"><span /><span /><span /><span /></div>
-              <p>{phase === 'starting' ? 'Submitting journey' : 'No journey in this session'}</p>
+              <p>{phase === 'starting' ? 'Submitting order' : 'No order in this session'}</p>
             </div>
           )}
 
@@ -191,12 +191,12 @@ export default function App() {
             <code>{traceId ?? '—'}</code>
           </div>
           {error && <p className="error-message" role="alert">{error}</p>}
-          {journeyId && <p className="journey-id">Journey <code>{journeyId}</code></p>}
+          {orderId && <p className="order-id">Order ID <code>{orderId}</code></p>}
         </div>
       </section>
 
       <footer className="footnote">
-        <span>LOCAL DEMO</span>
+        <span>SYNTHETIC ORDER FLOW</span>
         <span>No customer or production data</span>
         <span>.NET 10 · OpenTelemetry</span>
       </footer>

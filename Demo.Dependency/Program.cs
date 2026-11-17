@@ -1,11 +1,11 @@
 using Demo.ServiceDefaults;
 
-var builder = WebApplication.CreateBuilder(args).AddDemoTelemetry("dependency");
+var builder = WebApplication.CreateBuilder(args).AddDemoTelemetry("fulfillment");
 builder.Services.AddSingleton<ScenarioState>();
 
 var app = builder.Build();
 
-app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "dependency" }));
+app.MapGet("/health", () => Results.Ok(new { status = "healthy", service = "fulfillment" }));
 
 app.MapPost("/scenario", (ScenarioRequest request, ScenarioState scenario) =>
 {
@@ -42,15 +42,15 @@ app.MapPost("/process", async Task<IResult> (
     }
 
     logger.LogInformation(
-        "Dependency processed {ItemCount} items using the {Scenario} scenario",
+        "Fulfillment processed {ItemCount} order items using the {Scenario} scenario",
         request.ItemCount,
         currentScenario);
 
     if (currentScenario == "failing")
     {
-        logger.LogWarning("Dependency rejected the synthetic journey with {ItemCount} items", request.ItemCount);
+        logger.LogWarning("Fulfillment rejected the synthetic order with {ItemCount} items", request.ItemCount);
         return Results.Problem(
-            detail: "Synthetic dependency failure.",
+            detail: "Synthetic fulfillment failure.",
             statusCode: StatusCodes.Status503ServiceUnavailable);
     }
 

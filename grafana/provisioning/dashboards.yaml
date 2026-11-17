@@ -1,9 +1,9 @@
 apiVersion: 1
 
 providers:
-  - name: Journey Lab
+  - name: Order Flow
     type: file
-    folder: Journey Lab
+    folder: Order Flow
     disableDeletion: true
     editable: false
     options:

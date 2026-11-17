@@ -17,8 +17,8 @@ services:
       - otel-data:/data
     mem_limit: 2g
 
-  dependency:
-    image: observability-demo-dependency:local
+  fulfillment:
+    image: observability-demo-fulfillment:local
     build:
       context: .
       args:
@@ -50,14 +50,14 @@ services:
     entrypoint: ["dotnet", "Demo.Worker.dll"]
     environment:
       ASPNETCORE_URLS: http://+:8080
-      DEPENDENCY_URL: http://dependency:8080
+      FULFILLMENT_URL: http://fulfillment:8080
       SERVICE_VERSION: ${SERVICE_VERSION:-local}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-lgtm:4318
       OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
     ports:
       - "127.0.0.1:8081:8080"
     depends_on:
-      dependency:
+      fulfillment:
         condition: service_healthy
       otel-lgtm:
         condition: service_started
@@ -68,8 +68,8 @@ services:
       retries: 12
     mem_limit: 512m
 
-  journey-api:
-    image: observability-demo-journey-api:local
+  order-api:
+    image: observability-demo-order-api:local
     build:
       context: .
       args:
@@ -101,7 +101,7 @@ services:
     ports:
       - "127.0.0.1:5173:80"
     depends_on:
-      journey-api:
+      order-api:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"]
@@ -115,7 +115,7 @@ services:
     build:
       context: ./load
     depends_on:
-      journey-api:
+      order-api:
         condition: service_healthy
     volumes:
       - ./load/saturation.jmx:/test/saturation.jmx:ro
