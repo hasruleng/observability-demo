@@ -393,6 +393,8 @@ Skip only when telemetry is outside the scope of your check.
 2. In Grafana at `http://127.0.0.1:3000/`, open Explore and find the trace in Tempo using its trace ID.
 3. Inspect the trace and search Loki logs for the order ID.
 
+For illustrated guidance, see [How to Read Grafana](how-to-read-grafana.md).
+
 **Expected results**
 
 - [ ] PASS [ ] FAIL - The trace is found and includes the Order API, worker processing, and fulfillment request.

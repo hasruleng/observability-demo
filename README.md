@@ -18,6 +18,7 @@ customer data.
 - [Health and reset](#health-and-reset)
 - [Test plan](TEST-PLAN.md)
 - [WebUI guide](web/docs/ui-guide.md)
+- [How to read Grafana](how-to-read-grafana.md)
 
 ## Architecture
 
