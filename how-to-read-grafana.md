@@ -12,6 +12,7 @@ is at <http://127.0.0.1:3000/>.
 - [Read the example Loki results](#read-the-example-loki-results)
 - [Filter logs for a specific span](#filter-logs-for-a-specific-span)
 - [Read the Order Flow dashboard](#read-the-order-flow-dashboard)
+- [How order metrics reach Prometheus](#how-order-metrics-reach-prometheus)
 - [If data is missing](#if-data-is-missing)
 
 ## Find an order trace
@@ -169,6 +170,38 @@ orders over time rather than describing just the trace above:
 Metrics are exported every 10 seconds. Allow time for export and refresh the
 dashboard before judging a panel. See
 [D-5 in the test plan](TEST-PLAN.md#d-5-order-flow-dashboard).
+
+## How order metrics reach Prometheus
+
+The dashboard queries metrics; it does not search for the word `order` in
+logs or filter to a particular order ID. The path for an order outcome is:
+
+1. The worker calls `RecordCompletion` after an order completes or fails
+   ([worker code](Demo.Worker/Program.cs)). It records a duration and
+   increments an outcome counter defined in
+   [OrderTelemetry.cs](Demo.ServiceDefaults/OrderTelemetry.cs).
+2. The OpenTelemetry SDK listens to the `Demo.Order` meter and exports metrics
+   every 10 seconds over OTLP
+   ([telemetry setup](Demo.ServiceDefaults/TelemetryExtensions.cs)). The
+   worker's [Compose configuration](compose.yaml) points the exporter to the
+   Collector in the local LGTM container.
+3. The Collector forwards metrics to Prometheus's OTLP receiver. Prometheus
+   stores time series, and Grafana queries them using the panel expressions in
+   [journey-overview.json](grafana/dashboards/journey-overview.json).
+
+Prometheus translates the incoming OpenTelemetry names to its metric naming
+conventions. The application does not explicitly define the complete
+Prometheus names:
+
+| C# instrument | Prometheus series used by the dashboard | How the name is formed |
+|---|---|---|
+| Counter `demo.order.outcomes` | `demo_order_outcomes_total` | Dots become underscores and the counter gets `_total`. |
+| Histogram `demo.order.duration`, unit `ms` | `demo_order_duration_milliseconds_bucket` | Dots become underscores, `ms` becomes `milliseconds`, and histogram buckets get `_bucket`. |
+
+The histogram also produces `_sum` and `_count` series. The dashboard's p95
+query uses the bucket series; the outcome query uses the counter and groups
+its rate by the `outcome` tag (`completed` or `failed`). These are aggregate
+measurements, not individual order records.
 
 ## If data is missing
 
