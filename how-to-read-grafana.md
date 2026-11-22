@@ -168,6 +168,15 @@ orders over time rather than describing just the trace above:
 - **Order outcomes:** completed and failed order rates per second over a
   five-minute window, not raw order counts.
 
+![Order Flow dashboard showing a recent completed-order spike and idle worker](grafana/images/grafana-order-flow-dashboard.png)
+
+In this example, the green spike at the far right of **Order outcomes** shows
+the recent completed-order rate; the yellow line represents failed orders.
+The recent point near 100 ms in **Order duration p95** is an estimated
+duration, not the rate or a single order's duration. **Worker queue depth**
+and **Active worker** are at zero at the end of the displayed period, showing
+the worker is idle at that time. The earlier spikes are historical activity.
+
 To see recent completed orders more clearly, change the dashboard time range
 to **Last 15 minutes** and click **Refresh**. In the **Order outcomes** panel,
 use the legend to find `completed` (green in the example) and hover over the

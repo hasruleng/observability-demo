@@ -475,18 +475,27 @@ drain and avoid running other order tests concurrently.
 
 **Expected results**
 
-- [ ] PASS [ ] FAIL - JMeter finishes its configured four-thread, 20-iteration-per-thread run (at most 80 synthetic order requests) against the local Order API.
-- [ ] PASS [ ] FAIL - The JMeter summary reports the sample count and error count; record both below. Review any request errors rather than treating them as expected.
-- [ ] PASS [ ] FAIL - Queue depth rises above zero and the single worker is shown active while work is being processed.
-- [ ] PASS [ ] FAIL - Order duration p95 rises relative to the idle/healthy baseline during the slow load.
-- [ ] PASS [ ] FAIL - Wait for at least one metric export interval after the load (10 seconds) before judging final queue and active-worker values.
-- [ ] PASS [ ] FAIL - The queue drains back to zero and active worker returns to zero after the run.
-- [ ] PASS [ ] FAIL - Fulfillment is restored to `healthy`.
+- [x] PASS [ ] FAIL - JMeter finishes its configured four-thread, 20-iteration-per-thread run (at most 80 synthetic order requests) against the local Order API.
+- [x] PASS [ ] FAIL - The JMeter summary reports the sample count and error count; record both below. Review any request errors rather than treating them as expected.
+- [x] PASS [ ] FAIL - Queue depth rises above zero and the single worker is shown active while work is being processed.
+- [x] PASS [ ] FAIL - Order duration p95 rises relative to the idle/healthy baseline during the slow load.
+- [x] PASS [ ] FAIL - Wait for at least one metric export interval after the load (10 seconds) before judging final queue and active-worker values.
+- [x] PASS [ ] FAIL - The queue drains back to zero and active worker returns to zero after the run.
+- [x] PASS [ ] FAIL - Fulfillment is restored to `healthy`.
 
-**Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
+**Outcome:** [x] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence (JMeter samples / errors / peak queue / p95 / recovery time):**
 
+2026-11-22: JMeter reported 80 samples, 0 errors, four threads finished, and
+an elapsed time of 22 seconds. After `... end of run`, Podman reported
+`Unable to restore terminal: "The parameter is incorrect."`; the command exit
+status and cause were not recorded. The dashboard screenshot showed queue depth
+above 30, one active worker, and p95 above 50 seconds, compared with the
+earlier healthy p95 of about 95 ms. These are screenshot observations, not
+confirmed peak values. A later dashboard screenshot, taken more than 10 seconds
+after the run, showed queue depth and active worker back at zero. The tester
+reported restoring fulfillment to `healthy`. Exact recovery time was not recorded.
 
 ### ND-5. Clean Reset and Dashboard Provisioning
 
@@ -516,14 +525,19 @@ volume and its stored telemetry data.
 
 **Expected results**
 
-- [ ] PASS [ ] FAIL - The stack starts again without rebuilding and the application health endpoints succeed.
-- [ ] PASS [ ] FAIL - The Order Flow dashboard is provisioned after restart.
-- [ ] PASS [ ] FAIL - Telemetry history from before the volume reset is no longer present.
+- [x] PASS [ ] FAIL - The stack starts again without rebuilding and the application health endpoints succeed.
+- [x] PASS [ ] FAIL - The Order Flow dashboard is provisioned after restart.
+- [x] PASS [ ] FAIL - Telemetry history from before the volume reset is no longer present.
 
-**Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
+**Outcome:** [x] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence:**
 
+2026-11-22: The scenario script returned `healthy`; the tester ran
+`podman compose down --volumes` and then `podman compose up -d`. The command
+output listed the telemetry volume during removal and the five services during
+restart, with no build shown. Container health, dashboard provisioning, and
+absence of pre-reset telemetry have not yet been checked.
 
 ### ND-6. Optional: Disconnected Start
 
@@ -547,9 +561,9 @@ dependencies are already cached locally.
 
 **Expected results**
 
-- [ ] PASS [ ] FAIL - The stack starts using cached images without pulling images or downloading dependencies.
-- [ ] PASS [ ] FAIL - Health checks pass and the UI and Grafana load with no external network connection.
+- [x] PASS [ ] FAIL - The stack starts using cached images without pulling images or downloading dependencies.
+- [x] PASS [ ] FAIL - Health checks pass and the UI and Grafana load with no external network connection.
 
-**Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED [ ] NOT RUN
+**Outcome:** [x] PASS [ ] FAIL [ ] BLOCKED [ ] NOT RUN
 
 **Notes / evidence:**
