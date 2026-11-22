@@ -10,6 +10,7 @@ is at <http://127.0.0.1:3000/>.
 - [Read the example trace](#read-the-example-trace)
 - [Find the matching log](#find-the-matching-log)
 - [Read the example Loki results](#read-the-example-loki-results)
+- [Filter logs for a specific span](#filter-logs-for-a-specific-span)
 - [Read the Order Flow dashboard](#read-the-order-flow-dashboard)
 - [If data is missing](#if-data-is-missing)
 
@@ -104,6 +105,37 @@ for the matching-log check.
 The completion entry supports the matching-log check in D-4. It does not by
 itself verify that the **Related logs** link navigates to it; test that
 separately if the link is configured.
+
+## Filter logs for a specific span
+
+![Tempo trace and related Loki logs displayed side by side](grafana/images/grafana-related-logs.png)
+
+The **Related logs** button opens Loki next to the trace. In this example the
+visible entries are from the Order API's `POST /orders`; opening the link does
+not by itself show that the worker's completion log was found. To isolate
+logs for a particular span:
+
+1. In the Tempo trace, expand the desired span and copy its **Span ID**. For the
+   worker's completion log, choose the worker's `order.process` span. Its
+   span ID is different from the trace ID and the order ID.
+2. In the Loki pane, open the query editor, select **Code**, and enter a query
+   like this, replacing the IDs with those from your trace:
+
+   ```logql
+   {service_name="order-worker"} | trace_id="ba3061c9f22912864c5532e5ad8f3cde" | span_id="1dca96b1e0ace322"
+   ```
+
+3. Ensure the time range includes the span and run the query. The example
+   `order.process` span includes the five-item order's completion log as well
+   as worker HTTP-client messages. Add `|= "completed"` to the query if you
+   want to narrow the results to matching message text.
+
+The `service_name` selector chooses a log stream; `trace_id` and `span_id`
+filter log metadata, rather than the message text. This exact-span filter
+does not automatically include child spans: choose a different span ID and,
+if needed, its service name to inspect another operation. Some spans may have
+no associated logs. If results are missing, widen the time range, verify the
+IDs and service, and allow time for telemetry to arrive.
 
 ## Read the Order Flow dashboard
 

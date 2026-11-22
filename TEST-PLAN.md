@@ -408,7 +408,8 @@ For illustrated guidance, see [How to Read Grafana](how-to-read-grafana.md).
 2026-11-22: Trace ID `ba3061c9f22912864c5532e5ad8f3cde`; order ID
 `10dab4d8-bafd-4fe5-a585-8905257aba7a`. Tempo showed the Order API, worker,
 and fulfillment spans. Loki showed the worker's completion log for the same
-order with 5 items. Trace-to-logs navigation remains unverified.
+order with 5 items. Related logs opened alongside the trace, showing Order API
+logs; navigation to the matching worker completion log remains unverified.
 
 ### D-5. Order Flow Dashboard
 
