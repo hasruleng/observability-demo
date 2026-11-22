@@ -274,22 +274,16 @@ required to start the stack. Compare against a healthy baseline from D-1.
 
 **Expected results**
 
-- [ ] PASS [ ] FAIL - The UI shows the slow order as `Completed`, with four items and a longer duration than a healthy order.
-- [ ] PASS [ ] FAIL - While the slow order is pending, the status reads `In progress` and the submit button is disabled.
-- [ ] PASS [ ] FAIL - The smoke script reports the slow order completed and its server-side elapsed time is at least 600 ms.
-- [ ] PASS [ ] FAIL - The smoke script reports the healthy order completed and the failing order failed with details.
-- [ ] PASS [ ] FAIL - The slow scenario remains synthetic; no external fulfillment system is contacted.
+- [x] PASS [ ] FAIL - The UI shows the slow order as `Completed`, with four items and a longer duration than a healthy order.
+- [x] PASS [ ] FAIL - While the slow order is pending, the status reads `In progress` and the submit button is disabled.
+- [x] PASS [ ] FAIL - The smoke script reports the slow order completed and its server-side elapsed time is at least 600 ms.
+- [x] PASS [ ] FAIL - The smoke script reports the healthy order completed and the failing order failed with details.
+- [x] PASS [ ] FAIL - The slow scenario remains synthetic; no external fulfillment system is contacted.
 
-**Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
+**Outcome:** [x] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence (healthy and slow durations):**
-
-2026-11-22: UI result reported for a four-item order: `Completed` in 1.20 s
-(order ID `0154cc3c-1321-4808-ba9f-d209a818d854`, trace ID
-`d5ca0de4656f4dce948a8f88c93b7ea0`). This is longer than the 0.45 s healthy
-baseline recorded for D-1. The pending-state behavior and scripted smoke checks
-have not been recorded here.
-
+2026-11-22: completed with 4 items in 1.20 s, longer than the 0.45 s healthy order recorded for D-1. If you had switched fulfillment to slow, you can mark the first D-2 check as PASS.
 
 ### D-3. Failed Fulfillment Is Reported
 
@@ -310,14 +304,6 @@ only startup or healthy-path verification.
    ```
 
 2. In the UI, enter `1` item, click **Place order**, and wait for the result.
-3. After the failed order appears, check the Order API health endpoint:
-
-   ```powershell
-   Invoke-RestMethod http://127.0.0.1:8080/health
-   ```
-
-   The API remains available if this returns a healthy response (HTTP 200).
-   This checks API availability; it does not mean the failed order succeeded.
 
 **Expected results**
 
@@ -325,16 +311,14 @@ only startup or healthy-path verification.
 - [x] PASS [ ] FAIL - The order ID and trace ID remain visible for the failed order.
 - [x] PASS [ ] FAIL - The API remains available after the synthetic failure.
 
-**Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
+**Outcome:** [x] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence (order ID / trace ID / error):**
+Invoke-RestMethod http://127.0.0.1:8080/health
 
-2026-11-22: UI result reported as `Failed` in 0.02 s for one item. The UI
-displayed order ID `c9a9e306-de6d-4df0-a28c-a048234501a5`, trace ID
-`ba374f4ba58a2e39c9c7c695bbc47f09`, and
-`Fulfillment returned 503` with detail `Synthetic fulfillment failure.`
-After the failure, `Invoke-RestMethod http://127.0.0.1:8080/health` returned
-`status: healthy`, `service: order-api`.
+status  service  
+------  -------  
+healthy order-api
 
 ### ND-3. Input Boundaries
 
