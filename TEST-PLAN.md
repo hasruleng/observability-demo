@@ -323,7 +323,7 @@ only startup or healthy-path verification.
 
 - [x] PASS [ ] FAIL - The UI shows status and outcome `Failed`, plus an explanatory error.
 - [x] PASS [ ] FAIL - The order ID and trace ID remain visible for the failed order.
-- [ ] PASS [ ] FAIL - The API remains available after the synthetic failure.
+- [x] PASS [ ] FAIL - The API remains available after the synthetic failure.
 
 **Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
 
@@ -333,7 +333,8 @@ only startup or healthy-path verification.
 displayed order ID `c9a9e306-de6d-4df0-a28c-a048234501a5`, trace ID
 `ba374f4ba58a2e39c9c7c695bbc47f09`, and
 `Fulfillment returned 503` with detail `Synthetic fulfillment failure.`
-The Order API health check after this failure has not yet been recorded.
+After the failure, `Invoke-RestMethod http://127.0.0.1:8080/health` returned
+`status: healthy`, `service: order-api`.
 
 ### ND-3. Input Boundaries
 
