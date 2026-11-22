@@ -342,11 +342,11 @@ for each stack startup or observability walkthrough.
 
 **Expected results**
 
-- [ ] PASS [ ] FAIL - Browser validation prevents out-of-range values from being submitted through the form.
-- [ ] PASS [ ] FAIL - Direct API requests for `0` or `51` items return HTTP 400.
-- [ ] PASS [ ] FAIL - Values `1` and `50` are accepted by input validation (use a healthy scenario if submitting them).
+- [x] PASS [ ] FAIL - Browser validation prevents out-of-range values from being submitted through the form.
+- [x] PASS [ ] FAIL - Direct API requests for `0` or `51` items return HTTP 400.
+- [x] PASS [ ] FAIL - Values `1` and `50` are accepted by input validation (use a healthy scenario if submitting them).
 
-**Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
+**Outcome:** [x] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence:**
 
@@ -368,11 +368,11 @@ presentation environment are unchanged.
 
 **Expected results**
 
-- [ ] PASS [ ] FAIL - The form, status, order ID, and trace ID remain readable and usable at both sizes.
-- [ ] PASS [ ] FAIL - No horizontal page overflow or overlapping content appears at the mobile size.
-- [ ] PASS [ ] FAIL - The order can be submitted and its result read at both sizes.
+- [x] PASS [ ] FAIL - The form, status, order ID, and trace ID remain readable and usable at both sizes.
+- [x] PASS [ ] FAIL - No horizontal page overflow or overlapping content appears at the mobile size.
+- [x] PASS [ ] FAIL - The order can be submitted and its result read at both sizes.
 
-**Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
+**Outcome:** [x] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence (viewport sizes / browser):**
 
