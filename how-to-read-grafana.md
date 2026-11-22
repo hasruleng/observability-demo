@@ -112,12 +112,26 @@ separately if the link is configured.
 
 The **Related logs** button opens Loki next to the trace. In this example the
 visible entries are from the Order API's `POST /orders`; opening the link does
-not by itself show that the worker's completion log was found. To isolate
-logs for a particular span:
+not by itself show that the worker's completion log was found.
 
-1. In the Tempo trace, expand the desired span and copy its **Span ID**. For the
-   worker's completion log, choose the worker's `order.process` span. Its
-   span ID is different from the trace ID and the order ID.
+To navigate from a particular span without copying an ID:
+
+1. In the Tempo trace, expand the desired span, such as the worker's
+   `order.process` span.
+2. Click **Related logs** inside that span's details, rather than the button
+   in the trace header. Grafana opens Loki with the span's service, trace ID,
+   and time range.
+3. Inspect the results for the matching order and log message. If the expected
+   log is missing, widen the Loki time range slightly and rerun the query. In
+   the example, the worker's completion log falls just beyond the initial
+   millisecond-precision end of the range.
+
+The span-level link in this demo filters by **service and trace ID**, not by
+span ID. Logs from other spans in the same service and time range can also
+appear. To restrict results to one exact span:
+
+1. Copy the **Span ID** from the expanded span. It differs from the trace ID
+   and the order ID.
 2. In the Loki pane, open the query editor, select **Code**, and enter a query
    like this, replacing the IDs with those from your trace:
 
