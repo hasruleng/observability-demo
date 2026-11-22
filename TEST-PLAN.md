@@ -397,14 +397,18 @@ For illustrated guidance, see [How to Read Grafana](how-to-read-grafana.md).
 
 **Expected results**
 
-- [ ] PASS [ ] FAIL - The trace is found and includes the Order API, worker processing, and fulfillment request.
-- [ ] PASS [ ] FAIL - Loki contains the worker's completion log for the same order ID.
+- [x] PASS [ ] FAIL - The trace is found and includes the Order API, worker processing, and fulfillment request.
+- [x] PASS [ ] FAIL - Loki contains the worker's completion log for the same order ID.
 - [ ] PASS [ ] FAIL [ ] N/A - If trace-to-logs navigation is configured, it opens or identifies the matching log for this trace. Mark N/A if Grafana has no such link configured.
 
 **Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence (trace ID / order ID / Grafana links):**
 
+2026-11-22: Trace ID `ba3061c9f22912864c5532e5ad8f3cde`; order ID
+`10dab4d8-bafd-4fe5-a585-8905257aba7a`. Tempo showed the Order API, worker,
+and fulfillment spans. Loki showed the worker's completion log for the same
+order with 5 items. Trace-to-logs navigation remains unverified.
 
 ### D-5. Order Flow Dashboard
 
