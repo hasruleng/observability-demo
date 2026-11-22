@@ -399,9 +399,9 @@ For illustrated guidance, see [How to Read Grafana](how-to-read-grafana.md).
 
 - [x] PASS [ ] FAIL - The trace is found and includes the Order API, worker processing, and fulfillment request.
 - [x] PASS [ ] FAIL - Loki contains the worker's completion log for the same order ID.
-- [ ] PASS [ ] FAIL [ ] N/A - If trace-to-logs navigation is configured, it opens or identifies the matching log for this trace. Mark N/A if Grafana has no such link configured.
+- [x] PASS [ ] FAIL [ ] N/A - If trace-to-logs navigation is configured, it opens or identifies the matching log for this trace. Mark N/A if Grafana has no such link configured.
 
-**Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
+**Outcome:** [x] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence (trace ID / order ID / Grafana links):**
 
@@ -429,14 +429,19 @@ functional-only check where dashboard behavior is not in scope.
 
 **Expected results**
 
-- [ ] PASS [ ] FAIL - The dashboard loads with panels for order duration p95, worker queue depth, active worker, and order outcomes.
-- [ ] PASS [ ] FAIL - Completed orders appear in the outcomes panel and duration data appears in the p95 panel after telemetry is exported.
-- [ ] PASS [ ] FAIL - During idle time, queue depth and active worker return to zero.
+- [x] PASS [ ] FAIL - The dashboard loads with panels for order duration p95, worker queue depth, active worker, and order outcomes.
+- [x] PASS [ ] FAIL - Completed orders appear in the outcomes panel and duration data appears in the p95 panel after telemetry is exported.
+- [x] PASS [ ] FAIL - During idle time, queue depth and active worker return to zero.
 
-**Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
+**Outcome:** [x] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence (observed values / time range):**
 
+2026-11-22: The dashboard screenshot showed all four panels, completed-order
+history, and idle queue depth and active worker at zero over the last six
+hours. After the tester placed several healthy orders and waited for export,
+the dashboard's Prometheus queries returned a completed rate of approximately
+0.0103 orders/s and an estimated p95 of 95 ms.
 
 ### D-6. Bounded Load and Queue Recovery
 

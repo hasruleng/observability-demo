@@ -168,6 +168,14 @@ orders over time rather than describing just the trace above:
 - **Order outcomes:** completed and failed order rates per second over a
   five-minute window, not raw order counts.
 
+To see recent completed orders more clearly, change the dashboard time range
+to **Last 15 minutes** and click **Refresh**. In the **Order outcomes** panel,
+use the legend to find `completed` (green in the example) and hover over the
+line to see its value. A small rate is normal when only a few orders finish.
+The dashboard time range changes what is displayed; each point's rate still
+uses the preceding five minutes. After orders stop, the rate can return to
+zero, so include the time when they were placed.
+
 Metrics are exported every 10 seconds. Allow time for export and refresh the
 dashboard before judging a panel. See
 [D-5 in the test plan](TEST-PLAN.md#d-5-order-flow-dashboard).
