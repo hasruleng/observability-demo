@@ -284,6 +284,12 @@ required to start the stack. Compare against a healthy baseline from D-1.
 
 **Notes / evidence (healthy and slow durations):**
 
+2026-11-22: UI result reported for a four-item order: `Completed` in 1.20 s
+(order ID `0154cc3c-1321-4808-ba9f-d209a818d854`, trace ID
+`d5ca0de4656f4dce948a8f88c93b7ea0`). This is longer than the 0.45 s healthy
+baseline recorded for D-1. The pending-state behavior and scripted smoke checks
+have not been recorded here.
+
 
 ### D-3. Failed Fulfillment Is Reported
 
@@ -304,17 +310,30 @@ only startup or healthy-path verification.
    ```
 
 2. In the UI, enter `1` item, click **Place order**, and wait for the result.
+3. After the failed order appears, check the Order API health endpoint:
+
+   ```powershell
+   Invoke-RestMethod http://127.0.0.1:8080/health
+   ```
+
+   The API remains available if this returns a healthy response (HTTP 200).
+   This checks API availability; it does not mean the failed order succeeded.
 
 **Expected results**
 
-- [ ] PASS [ ] FAIL - The UI shows status and outcome `Failed`, plus an explanatory error.
-- [ ] PASS [ ] FAIL - The order ID and trace ID remain visible for the failed order.
+- [x] PASS [ ] FAIL - The UI shows status and outcome `Failed`, plus an explanatory error.
+- [x] PASS [ ] FAIL - The order ID and trace ID remain visible for the failed order.
 - [ ] PASS [ ] FAIL - The API remains available after the synthetic failure.
 
 **Outcome:** [ ] PASS [ ] FAIL [ ] BLOCKED
 
 **Notes / evidence (order ID / trace ID / error):**
 
+2026-11-22: UI result reported as `Failed` in 0.02 s for one item. The UI
+displayed order ID `c9a9e306-de6d-4df0-a28c-a048234501a5`, trace ID
+`ba374f4ba58a2e39c9c7c695bbc47f09`, and
+`Fulfillment returned 503` with detail `Synthetic fulfillment failure.`
+The Order API health check after this failure has not yet been recorded.
 
 ### ND-3. Input Boundaries
 
