@@ -12,6 +12,7 @@ is at <http://127.0.0.1:3000/>.
 - [Read the example Loki results](#read-the-example-loki-results)
 - [Filter logs for a specific span](#filter-logs-for-a-specific-span)
 - [Read the Order Flow dashboard](#read-the-order-flow-dashboard)
+- [Understand order duration p95](#understand-order-duration-p95)
 - [How order metrics reach Prometheus](#how-order-metrics-reach-prometheus)
 - [If data is missing](#if-data-is-missing)
 
@@ -170,6 +171,30 @@ orders over time rather than describing just the trace above:
 Metrics are exported every 10 seconds. Allow time for export and refresh the
 dashboard before judging a panel. See
 [D-5 in the test plan](TEST-PLAN.md#d-5-order-flow-dashboard).
+
+## Understand order duration p95
+
+The **95th percentile**, or **p95**, describes the slower end of a group of
+orders. For example, if the p95 is **800 ms**, roughly 95% of observed order
+durations were at or below 800 ms, and roughly 5% were above it. It is not the
+average, the slowest order, or the duration of a specific order.
+
+On the **Order duration p95** panel, hover over the line to see the estimate at
+that time. Each point summarizes orders measured in the preceding five minutes,
+not the entire dashboard time range. A rising line suggests slower order
+processing; compare healthy and slow scenarios to see the difference.
+
+In this demo the measurement starts when the worker accepts an order and ends
+when processing completes or fails. It includes queue wait and fulfillment,
+but not the full browser click-to-result time. Both completed and failed
+orders contribute. For an individual order, use its trace and UI result instead.
+
+The panel estimates p95 from histogram buckets, not exact individual durations,
+so the value is approximate. With only a few orders, it can be especially
+unstable or misleading; it is not proof of a performance target. After traffic
+stops, the five-minute window eventually contains no new observations, so the
+panel may show no value rather than zero. Allow time for metrics to export and
+refresh before drawing conclusions.
 
 ## How order metrics reach Prometheus
 
