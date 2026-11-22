@@ -179,6 +179,13 @@ orders. For example, if the p95 is **800 ms**, roughly 95% of observed order
 durations were at or below 800 ms, and roughly 5% were above it. It is not the
 average, the slowest order, or the duration of a specific order.
 
+**p99** is the corresponding threshold for roughly 99% of orders. For the
+same set of observations, p99 cannot be lower than p95, but it can be equal:
+for example, both might be 800 ms if enough orders have that duration. A p95
+of 800 ms alone does not tell you the p99 value. The dashboard currently
+shows p95, not p99; compare percentiles only for the same metric, time window,
+and set of orders.
+
 On the **Order duration p95** panel, hover over the line to see the estimate at
 that time. Each point summarizes orders measured in the preceding five minutes,
 not the entire dashboard time range. A rising line suggests slower order
