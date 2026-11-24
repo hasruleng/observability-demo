@@ -467,8 +467,12 @@ drain and avoid running other order tests concurrently.
 3. Run the bounded JMeter profile:
 
    ```powershell
-   podman compose --profile load run --rm jmeter
+   podman compose --profile load run --rm -T jmeter
    ```
+
+   `-T` disables pseudo-TTY allocation. JMeter runs in non-GUI mode, so it
+   does not need a terminal; disabling the TTY avoids Podman's terminal
+   restoration warning on Windows.
 
 4. Observe the queue, active worker, order duration, and outcomes panels during and after the run.
 5. Wait for queue depth to return to zero, then restore `healthy`.
